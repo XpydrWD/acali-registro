@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ACALI CLUB - Registro de Horas</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<style>
+:root {
+  --primary: #0066CC; --primary-light: #E8F2FF; --primary-dark: #004C99;
+  --success: #28A745; --success-light: #E6F9EC;
+  --warning: #F0AD4E; --warning-light: #FFF8EC;
+  --danger: #DC3545; --danger-light: #FDEAEC;
+  --gray-50: #F8F9FA; --gray-100: #F1F3F5; --gray-200: #E9ECEF;
+  --gray-300: #DEE2E6; --gray-400: #CED4DA; --gray-500: #ADB5BD;
+  --gray-600: #6C757D; --gray-700: #495057; --gray-800: #343A40;
+  --gray-900: #212529; --white: #FFFFFF;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--gray-50); color: var(--gray-900); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+.app-header { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: var(--white); padding: 16px 20px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-md); }
+.header-top { display: flex; align-items: center; justify-content: space-between; }
+.header-title { display: flex; align-items: center; gap: 10px; }
+.header-title .logo { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.header-title h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+.header-title small { font-size: 11px; opacity: 0.85; font-weight: 400; }
+.btn-icon { width: 38px; height: 38px; border-radius: 10px; border: none; background: rgba(255,255,255,0.15); color: var(--white); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.btn-icon:hover { background: rgba(255,255,255,0.25); }
+.btn-icon .material-icons-round { font-size: 20px; }
+.nav-tabs { display: flex; background: var(--white); border-bottom: 1px solid var(--gray-200); position: sticky; top: 68px; z-index: 99; }
+.nav-tab { flex: 1; padding: 14px 10px; text-align: center; font-size: 13px; font-weight: 500; color: var(--gray-500); border: none; background: none; cursor: pointer; position: relative; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.nav-tab.active { color: var(--primary); font-weight: 600; }
+.nav-tab.active::after { content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 3px; background: var(--primary); border-radius: 3px 3px 0 0; }
+.nav-tab .material-icons-round { font-size: 18px; }
+.main-content { padding: 16px; max-width: 600px; margin: 0 auto; padding-bottom: 100px; }
+.screen { display: none; } .screen.active { display: block; }
+.card { background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); margin-bottom: 12px; overflow: hidden; }
+.card-header { padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--gray-100); }
+.card-header h3 { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.card-header h3 .material-icons-round { font-size: 18px; color: var(--primary); }
+.card-body { padding: 16px; }
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 12px; font-weight: 600; color: var(--gray-600); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-control { width: 100%; padding: 12px 14px; border: 1.5px solid var(--gray-300); border-radius: var(--radius-sm); font-size: 15px; font-family: inherit; color: var(--gray-900); background: var(--white); transition: all 0.2s; -webkit-appearance: none; }
+.form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,102,204,0.15); }
+select.form-control { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236C757D' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+.date-block { background: var(--gray-50); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 12px; border: 1px solid var(--gray-200); }
+.date-block-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.date-block-header .date-display { font-size: 14px; font-weight: 600; color: var(--gray-800); display: flex; align-items: center; gap: 6px; }
+.date-block-header .date-display .material-icons-round { font-size: 18px; color: var(--primary); }
+.btn-remove-date { width: 28px; height: 28px; border-radius: 50%; border: none; background: var(--danger-light); color: var(--danger); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.btn-remove-date .material-icons-round { font-size: 16px; }
+.hour-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; background: var(--white); padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--gray-200); }
+.hour-row .time-inputs { display: flex; align-items: center; gap: 6px; flex: 1; }
+.hour-row input[type="time"] { padding: 8px 6px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 14px; font-family: inherit; width: 100px; text-align: center; }
+.hour-row input[type="time"]:focus { outline: none; border-color: var(--primary); }
+.time-separator { color: var(--gray-500); font-size: 12px; font-weight: 500; }
+.hour-row .btn-remove-hour { width: 28px; height: 28px; border-radius: 50%; border: none; background: var(--gray-100); color: var(--gray-500); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.hour-row .btn-remove-hour .material-icons-round { font-size: 16px; }
+.checkbox-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+.checkbox-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
+.checkbox-row label { font-size: 13px; color: var(--gray-700); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 20px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; font-family: inherit; border: none; cursor: pointer; transition: all 0.2s; width: 100%; }
+.btn .material-icons-round { font-size: 18px; }
+.btn-primary { background: var(--primary); color: var(--white); }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-primary:disabled { background: var(--gray-400); cursor: not-allowed; }
+.btn-success { background: var(--success); color: var(--white); }
+.btn-outline { background: var(--white); color: var(--primary); border: 1.5px solid var(--primary); }
+.btn-outline:hover { background: var(--primary-light); }
+.btn-ghost { background: transparent; color: var(--primary); padding: 8px 12px; }
+.btn-sm { padding: 8px 14px; font-size: 13px; width: auto; }
+.record-item { padding: 14px 16px; border-bottom: 1px solid var(--gray-100); display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: background 0.15s; }
+.record-item:hover { background: var(--gray-50); }
+.record-item:last-child { border-bottom: none; }
+.record-info h4 { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+.record-info p { font-size: 12px; color: var(--gray-600); }
+.status-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.status-pending { background: var(--warning-light); color: #966A00; }
+.status-approved { background: var(--success-light); color: #1B6D30; }
+.stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.stat-card { background: var(--white); border-radius: var(--radius-md); padding: 14px; box-shadow: var(--shadow-sm); text-align: center; }
+.stat-card .stat-value { font-size: 24px; font-weight: 700; color: var(--primary); }
+.stat-card .stat-label { font-size: 11px; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+.filter-bar { display: flex; gap: 8px; margin-bottom: 12px; }
+.filter-bar .form-control { padding: 10px 12px; font-size: 13px; }
+.toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--gray-800); color: var(--white); padding: 14px 24px; border-radius: var(--radius-md); font-size: 14px; font-weight: 500; box-shadow: var(--shadow-lg); z-index: 200; transition: transform 0.3s ease; display: flex; align-items: center; gap: 8px; max-width: 90%; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast .material-icons-round { font-size: 20px; }
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 150; display: none; align-items: flex-end; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--white); border-radius: var(--radius-lg) var(--radius-lg) 0 0; width: 100%; max-width: 600px; max-height: 85vh; overflow-y: auto; animation: slideUp 0.3s ease; }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-header { padding: 20px; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--white); z-index: 1; }
+.modal-header h2 { font-size: 18px; font-weight: 700; }
+.modal-body { padding: 20px; }
+.modal-footer { padding: 16px 20px; border-top: 1px solid var(--gray-200); display: flex; gap: 10px; position: sticky; bottom: 0; background: var(--white); }
+.modal-footer .btn { flex: 1; }
+.print-view { display: none; font-family: 'Century Gothic', 'Inter', sans-serif; }
+@media print {
+  body * { display: none !important; }
+  .print-view, .print-view * { display: block !important; }
+  .print-view { padding: 20px; }
+  .print-view table { display: table !important; }
+  .print-view tr { display: table-row !important; }
+  .print-view td, .print-view th { display: table-cell !important; }
+  .print-view thead { display: table-header-group !important; }
+  .print-view tbody { display: table-row-group !important; }
+  .print-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+  .print-table th, .print-table td { border: 1px solid #000; padding: 4px 6px; text-align: center; }
+  .print-table th { background: #f0f0f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-weight: bold; }
+  .print-header { text-align: center; margin-bottom: 10px; }
+  .print-header h2 { font-size: 16px; margin-bottom: 4px; }
+  .print-meta { display: flex !important; justify-content: space-between !important; margin-bottom: 10px; font-size: 12px; }
+  .print-footer { margin-top: 30px; display: flex !important; justify-content: space-around !important; }
+  .print-footer div { text-align: center; }
+  .print-footer .line { width: 150px; border-bottom: 1px solid #000; margin: 30px auto 4px; }
+}
+.empty-state { text-align: center; padding: 40px 20px; color: var(--gray-500); }
+.empty-state .material-icons-round { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+.empty-state p { font-size: 14px; line-height: 1.5; }
+.config-banner { background: var(--warning-light); border: 1px solid var(--warning); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 12px; font-size: 13px; color: var(--gray-700); display: flex; align-items: flex-start; gap: 10px; }
+.config-banner .material-icons-round { color: var(--warning); font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+.detail-date-section { margin-bottom: 16px; }
+.detail-date-title { font-size: 13px; font-weight: 600; color: var(--gray-600); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.detail-hours-list { list-style: none; }
+.detail-hours-list li { padding: 8px 12px; background: var(--gray-50); border-radius: 6px; margin-bottom: 4px; font-size: 14px; display: flex; align-items: center; justify-content: space-between; }
+.detail-hours-list .suple-badge { background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.totals-row { display: flex; justify-content: space-around; padding: 14px; background: var(--primary-light); border-radius: var(--radius-sm); margin-top: 12px; }
+.totals-row .total-item { text-align: center; }
+.totals-row .total-value { font-size: 20px; font-weight: 700; color: var(--primary); }
+.totals-row .total-label { font-size: 11px; color: var(--gray-600); text-transform: uppercase; }
+</style>
+</head>
+<body>
+<header class="app-header">
+  <div class="header-top">
+    <div class="header-title">
+      <div class="logo">🏊</div>
+      <div><h1>ACALI CLUB</h1><small>Registro de Horas - Natación</small></div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-icon" onclick="openConfig()" title="Configuración"><span class="material-icons-round">settings</span></button>
+    </div>
+  </div>
+</header>
+<nav class="nav-tabs">
+  <button class="nav-tab active" onclick="switchTab('capture')"><span class="material-icons-round">edit_note</span>Capturar</button>
+  <button class="nav-tab" onclick="switchTab('records')"><span class="material-icons-round">list_alt</span>Registros</button>
+  <button class="nav-tab" onclick="switchTab('admin')"><span class="material-icons-round">admin_panel_settings</span>Admin</button>
+</nav>
+<main class="main-content">
+  <div id="screen-capture" class="screen active">
+    <div id="configBanner" class="config-banner" style="display:none;">
+      <span class="material-icons-round">warning</span>
+      <div><strong>Configuración pendiente.</strong> Ingresa la URL del Google Apps Script en ⚙️ Configuración para conectar con la base de datos.<br><small>Mientras tanto, los datos se guardarán localmente.</small></div>
+    </div>
+    <div class="card"><div class="card-body">
+      <div class="form-group" style="margin-bottom:12px;">
+        <label class="form-label">Instructor</label>
+        <select id="selInstructor" class="form-control"><option value="">Selecciona tu nombre...</option></select>
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Periodo (Quincena)</label>
+        <select id="selPeriodo" class="form-control"><option value="">Selecciona el periodo...</option></select>
+      </div>
+    </div></div>
+    <div id="dateBlocksContainer"></div>
+    <button class="btn btn-outline" onclick="addDateBlock()" style="margin-bottom:12px;"><span class="material-icons-round">add_circle_outline</span>Agregar Fecha</button>
+    <button id="btnSubmit" class="btn btn-primary" onclick="submitRecord()" disabled><span class="material-icons-round">send</span>Enviar Registro</button>
+  </div>
+  <div id="screen-records" class="screen">
+    <div class="filter-bar"><select id="filterPeriodo" class="form-control" onchange="loadRecords()"><option value="">Todos los periodos</option></select></div>
+    <div id="recordsList" class="card"><div class="empty-state"><span class="material-icons-round">inbox</span><p>No hay registros aún.<br>Captura tus horas para verlas aquí.</p></div></div>
+  </div>
+  <div id="screen-admin" class="screen">
+    <div class="stats-row" id="adminStats">
+      <div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Total Registros</div></div>
+      <div class="stat-card"><div class="stat-value" id="statPending">0</div><div class="stat-label">Pendientes</div></div>
+    </div>
+    <div class="filter-bar">
+      <select id="adminFilterPeriodo" class="form-control" onchange="loadAdminRecords()"><option value="">Todos los periodos</option></select>
+      <select id="adminFilterInstructor" class="form-control" onchange="loadAdminRecords()"><option value="">Todos</option></select>
+    </div>
+    <div id="adminRecordsList" class="card"><div class="empty-state"><span class="material-icons-round">admin_panel_settings</span><p>Panel de administración.<br>Aquí podrás autorizar los registros.</p></div></div>
+  </div>
+</main>
+<div id="detailModal" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header"><h2 id="modalTitle">Detalle del Registro</h2><button class="btn-icon" onclick="closeModal()" style="background:var(--gray-100);color:var(--gray-600);"><span class="material-icons-round">close</span></button></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter"></div>
+  </div>
+</div>
+<div id="configModal" class="modal-overlay" onclick="if(event.target===this)closeConfigModal()">
+  <div class="modal">
+    <div class="modal-header"><h2>⚙️ Configuración</h2><button class="btn-icon" onclick="closeConfigModal()" style="background:var(--gray-100);color:var(--gray-600);"><span class="material-icons-round">close</span></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">URL del Google Apps Script</label><input type="url" id="cfgScriptUrl" class="form-control" placeholder="https://script.google.com/macros/s/.../exec"><small style="color:var(--gray-500);font-size:11px;margin-top:4px;display:block;">Pega aquí la URL que obtuviste al desplegar el Apps Script.</small></div>
+      <div class="form-group"><label class="form-label">PIN de Administrador</label><input type="password" id="cfgAdminPin" class="form-control" placeholder="PIN de 4 dígitos" maxlength="4" pattern="[0-9]*" inputmode="numeric"><small style="color:var(--gray-500);font-size:11px;margin-top:4px;display:block;">Este PIN protege la pestaña de Administración.</small></div>
+      <div class="form-group"><label class="form-label">Instructores (uno por línea)</label><textarea id="cfgInstructors" class="form-control" rows="8" placeholder="Juan Pérez&#10;María López&#10;Carlos García..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeConfigModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveConfig()"><span class="material-icons-round">save</span>Guardar</button>
+    </div>
+  </div>
+</div>
+<div class="print-view" id="printView"></div>
+<div id="toast" class="toast"><span class="material-icons-round">check_circle</span><span id="toastMsg">Mensaje</span></div>
+<script>
+let APP_CONFIG = {
+  scriptUrl: '',
+  adminPin: '1234',
+  instructors: ['Instructor 1','Instructor 2','Instructor 3','Instructor 4','Instructor 5',
+    'Instructor 6','Instructor 7','Instructor 8','Instructor 9','Instructor 10']
+};
+let records = [];
+let dateBlockCount = 0;
+let adminUnlocked = false;
+
+function init() {
+  loadConfig(); populateInstructors(); populatePeriodos(); loadRecords(); checkConfigBanner(); addDateBlock();
+}
+
+function loadConfig() {
+  const saved = localStorage.getItem('acali_config');
+  if (saved) APP_CONFIG = { ...APP_CONFIG, ...JSON.parse(saved) };
+  const savedRecords = localStorage.getItem('acali_records');
+  if (savedRecords) records = JSON.parse(savedRecords);
+}
+
+function saveConfigToStorage() { localStorage.setItem('acali_config', JSON.stringify(APP_CONFIG)); }
+function saveRecordsToStorage() { localStorage.setItem('acali_records', JSON.stringify(records)); }
+function checkConfigBanner() { document.getElementById('configBanner').style.display = APP_CONFIG.scriptUrl ? 'none' : 'flex'; }
+
+function switchTab(tab) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  document.getElementById('screen-' + tab).classList.add('active');
+  if (tab === 'records') loadRecords();
+  if (tab === 'admin') { if (!adminUnlocked) requestAdminPin(); else loadAdminRecords(); }
+}
+
+function requestAdminPin() {
+  const pin = prompt('Ingresa el PIN de Administrador:');
+  if (pin === APP_CONFIG.adminPin) { adminUnlocked = true; loadAdminRecords(); }
+  else if (pin !== null) { showToast('PIN incorrecto', 'error'); switchTab('capture'); document.querySelectorAll('.nav-tab')[0].classList.add('active'); document.querySelectorAll('.nav-tab')[2].classList.remove('active'); }
+  else { switchTab('capture'); document.querySelectorAll('.nav-tab')[0].classList.add('active'); document.querySelectorAll('.nav-tab')[2].classList.remove('active'); }
+}
+
+function populateInstructors() {
+  const sel = document.getElementById('selInstructor');
+  const af = document.getElementById('adminFilterInstructor');
+  sel.innerHTML = '<option value="">Selecciona tu nombre...</option>';
+  af.innerHTML = '<option value="">Todos</option>';
+  APP_CONFIG.instructors.forEach(name => { sel.innerHTML += '<option value="'+name+'">'+name+'</option>'; af.innerHTML += '<option value="'+name+'">'+name+'</option>'; });
+}
+
+function populatePeriodos() {
+  const now = new Date();
+  const periodos = [];
+  for (let i = -2; i <= 2; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const y = d.getFullYear(); const m = d.getMonth();
+    const mn = d.toLocaleString('es-MX', { month: 'long' });
+    const mnCap = mn.charAt(0).toUpperCase() + mn.slice(1);
+    periodos.push({ value: y+'-'+String(m+1).padStart(2,'0')+'-Q1', label: '1ra Quincena - '+mnCap+' '+y });
+    periodos.push({ value: y+'-'+String(m+1).padStart(2,'0')+'-Q2', label: '2da Quincena - '+mnCap+' '+y });
+  }
+  ['selPeriodo','filterPeriodo','adminFilterPeriodo'].forEach(id => {
+    const sel = document.getElementById(id);
+    const first = sel.options[0].outerHTML;
+    sel.innerHTML = first;
+    periodos.forEach(p => { sel.innerHTML += '<option value="'+p.value+'">'+p.label+'</option>'; });
+  });
+  const cQ = now.getDate() <= 15 ? 'Q1' : 'Q2';
+  document.getElementById('selPeriodo').value = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+cQ;
+}
+
+function addDateBlock() {
+  dateBlockCount++;
+  const id = 'dateBlock_' + dateBlockCount;
+  const today = new Date().toISOString().split('T')[0];
+  const html = '<div class="date-block" id="'+id+'"><div class="date-block-header"><div class="date-display"><span class="material-icons-round">calendar_today</span><input type="date" class="form-control" style="width:auto;padding:8px 10px;font-size:14px;" value="'+today+'" onchange="updateSubmitState()"></div><button class="btn-remove-date" onclick="removeDateBlock(\''+id+'\')" title="Eliminar fecha"><span class="material-icons-round">close</span></button></div><div class="hours-container" id="hours_'+id+'"></div><button class="btn btn-ghost btn-sm" onclick="addHourRow(\''+id+'\')" style="margin-top:4px;"><span class="material-icons-round">add</span>Agregar Hora</button></div>';
+  document.getElementById('dateBlocksContainer').insertAdjacentHTML('beforeend', html);
+  addHourRow(id); updateSubmitState();
+}
+
+function removeDateBlock(id) { document.getElementById(id).remove(); updateSubmitState(); }
+
+function addHourRow(blockId) {
+  const container = document.getElementById('hours_' + blockId);
+  const rowId = blockId + '_hour_' + Date.now();
+  const html = '<div class="hour-row" id="'+rowId+'"><div class="time-inputs"><input type="time" placeholder="Inicio" onchange="updateSubmitState()"><span class="time-separator">a</span><input type="time" placeholder="Fin" onchange="updateSubmitState()"></div><div class="checkbox-row" style="margin:0;"><input type="checkbox" id="suple_'+rowId+'" title="Suplencia"><label for="suple_'+rowId+'" style="font-size:11px;">Suple</label></div><button class="btn-remove-hour" onclick="removeHourRow(\''+rowId+'\')" title="Eliminar"><span class="material-icons-round">close</span></button></div>';
+  container.insertAdjacentHTML('beforeend', html);
+}
+
+function removeHourRow(rowId) { document.getElementById(rowId).remove(); updateSubmitState(); }
+
+function updateSubmitState() {
+  const instructor = document.getElementById('selInstructor').value;
+  const periodo = document.getElementById('selPeriodo').value;
+  const blocks = document.querySelectorAll('.date-block');
+  document.getElementById('btnSubmit').disabled = !(blocks.length > 0 && instructor && periodo);
+}
+document.getElementById('selInstructor').addEventListener('change', updateSubmitState);
+document.getElementById('selPeriodo').addEventListener('change', updateSubmitState);
+
+function calcMinutes(start, end) {
+  const [sh,sm] = start.split(':').map(Number);
+  const [eh,em] = end.split(':').map(Number);
+  return (eh*60+em) - (sh*60+sm);
+}
+
+function submitRecord() {
+  const instructor = document.getElementById('selInstructor').value;
+  const periodo = document.getElementById('selPeriodo').value;
+  if (!instructor || !periodo) { showToast('Selecciona instructor y periodo', 'error'); return; }
+  const dates = [];
+  document.querySelectorAll('.date-block').forEach(block => {
+    const fecha = block.querySelector('input[type="date"]').value;
+    const hours = [];
+    block.querySelectorAll('.hour-row').forEach(row => {
+      const times = row.querySelectorAll('input[type="time"]');
+      const suple = row.querySelector('input[type="checkbox"]').checked;
+      if (times[0].value && times[1].value) hours.push({ inicio: times[0].value, fin: times[1].value, suplencia: suple });
+    });
+    if (fecha && hours.length > 0) dates.push({ fecha, hours });
+  });
+  if (dates.length === 0) { showToast('Agrega al menos una fecha con horas', 'error'); return; }
+  let totalHrs = 0, totalMediaHrs = 0, totalSuplencias = 0;
+  dates.forEach(d => { d.hours.forEach(h => {
+    const mins = calcMinutes(h.inicio, h.fin);
+    if (mins >= 60) totalHrs += Math.floor(mins / 60);
+    if (mins % 60 >= 30) totalMediaHrs++;
+    if (h.suplencia) totalSuplencias++;
+  }); });
+  const record = { id: 'R'+Date.now(), instructor, periodo, dates, totalHrs, totalMediaHrs, totalSuplencias, status: 'pending', createdAt: new Date().toISOString(), authorizedBy: null, authorizedAt: null };
+  records.push(record); saveRecordsToStorage();
+  if (APP_CONFIG.scriptUrl) sendToSheet(record);
+  showToast('Registro enviado correctamente');
+  document.getElementById('dateBlocksContainer').innerHTML = ''; dateBlockCount = 0; addDateBlock(); updateSubmitState();
+}
+
+async function sendToSheet(record) {
+  if (!APP_CONFIG.scriptUrl) return;
+  try { await fetch(APP_CONFIG.scriptUrl, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'addRecord', data: record }) }); } catch(e) { console.error(e); }
+}
+
+async function updateRecordStatus(recordId, status) {
+  if (!APP_CONFIG.scriptUrl) return;
+  try { await fetch(APP_CONFIG.scriptUrl, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'updateStatus', recordId, status }) }); } catch(e) { console.error(e); }
+}
+
+function loadRecords() {
+  const container = document.getElementById('recordsList');
+  const fp = document.getElementById('filterPeriodo').value;
+  const inst = document.getElementById('selInstructor').value;
+  let filtered = records;
+  if (fp) filtered = filtered.filter(r => r.periodo === fp);
+  if (inst) filtered = filtered.filter(r => r.instructor === inst);
+  filtered.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+  if (filtered.length === 0) { container.innerHTML = '<div class="empty-state"><span class="material-icons-round">inbox</span><p>No hay registros para este periodo.</p></div>'; return; }
+  container.innerHTML = filtered.map(r => '<div class="record-item" onclick="showRecordDetail(\''+r.id+'\')"><div class="record-info"><h4>'+r.instructor+'</h4><p>'+formatPeriodo(r.periodo)+' · '+r.dates.length+' día(s) · '+r.totalHrs+'h '+(r.totalMediaHrs > 0 ? r.totalMediaHrs+'½h' : '')+'</p></div><span class="status-badge '+(r.status==='approved'?'status-approved':'status-pending')+'">'+(r.status==='approved'?'✓ Autorizado':'⏳ Pendiente')+'</span></div>').join('');
+}
+
+function loadAdminRecords() {
+  if (!adminUnlocked) return;
+  const container = document.getElementById('adminRecordsList');
+  const fp = document.getElementById('adminFilterPeriodo').value;
+  const fi = document.getElementById('adminFilterInstructor').value;
+  let filtered = records;
+  if (fp) filtered = filtered.filter(r => r.periodo === fp);
+  if (fi) filtered = filtered.filter(r => r.instructor === fi);
+  filtered.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+  document.getElementById('statTotal').textContent = filtered.length;
+  document.getElementById('statPending').textContent = filtered.filter(r => r.status === 'pending').length;
+  if (filtered.length === 0) { container.innerHTML = '<div class="empty-state"><span class="material-icons-round">admin_panel_settings</span><p>No hay registros para estos filtros.</p></div>'; return; }
+  container.innerHTML = filtered.map(r => '<div class="record-item" onclick="showRecordDetail(\''+r.id+'\',true)"><div class="record-info"><h4>'+r.instructor+'</h4><p>'+formatPeriodo(r.periodo)+' · '+r.totalHrs+'h '+(r.totalMediaHrs>0?r.totalMediaHrs+'½h':'')+' · '+(r.totalSuplencias>0?r.totalSuplencias+' suple':'')+'</p></div><span class="status-badge '+(r.status==='approved'?'status-approved':'status-pending')+'">'+(r.status==='approved'?'✓ Autorizado':'⏳ Pendiente')+'</span></div>').join('');
+}
+
+function showRecordDetail(recordId, isAdmin) {
+  isAdmin = isAdmin || false;
+  const record = records.find(r => r.id === recordId);
+  if (!record) return;
+  document.getElementById('modalTitle').textContent = record.instructor;
+  let bodyHtml = '<div style="margin-bottom:12px;font-size:13px;color:var(--gray-600);">'+formatPeriodo(record.periodo)+'</div>';
+  record.dates.forEach(d => {
+    bodyHtml += '<div class="detail-date-section"><div class="detail-date-title"><span class="material-icons-round" style="font-size:16px;color:var(--primary);">calendar_today</span>'+formatDate(d.fecha)+'</div><ul class="detail-hours-list">';
+    d.hours.forEach(h => { bodyHtml += '<li><span>'+h.inicio+' - '+h.fin+'</span>'+(h.suplencia?'<span class="suple-badge">Suplencia</span>':'')+'</li>'; });
+    bodyHtml += '</ul></div>';
+  });
+  bodyHtml += '<div class="totals-row"><div class="total-item"><div class="total-value">'+record.totalHrs+'</div><div class="total-label">Horas</div></div><div class="total-item"><div class="total-value">'+record.totalMediaHrs+'</div><div class="total-label">Media Hora</div></div><div class="total-item"><div class="total-value">'+record.totalSuplencias+'</div><div class="total-label">Suplencias</div></div></div>';
+  if (record.status === 'approved') bodyHtml += '<div style="margin-top:12px;padding:10px;background:var(--success-light);border-radius:8px;font-size:13px;color:#1B6D30;">✅ Autorizado el '+(record.authorizedAt?new Date(record.authorizedAt).toLocaleDateString('es-MX'):'')+'</div>';
+  document.getElementById('modalBody').innerHTML = bodyHtml;
+  let footerHtml = '';
+  if (isAdmin && record.status === 'pending') footerHtml = '<button class="btn btn-success" onclick="authorizeRecord(\''+record.id+'\')"><span class="material-icons-round">check_circle</span>Autorizar</button><button class="btn btn-outline" onclick="printRecord(\''+record.id+'\')"><span class="material-icons-round">print</span>Imprimir</button>';
+  else if (isAdmin) footerHtml = '<button class="btn btn-outline" onclick="printRecord(\''+record.id+'\')"><span class="material-icons-round">print</span>Imprimir</button>';
+  else footerHtml = '<button class="btn btn-outline" onclick="closeModal()">Cerrar</button>';
+  document.getElementById('modalFooter').innerHTML = footerHtml;
+  document.getElementById('detailModal').classList.add('show');
+}
+
+function closeModal() { document.getElementById('detailModal').classList.remove('show'); }
+
+function authorizeRecord(recordId) {
+  const record = records.find(r => r.id === recordId);
+  if (!record) return;
+  record.status = 'approved'; record.authorizedAt = new Date().toISOString(); record.authorizedBy = 'Admin';
+  saveRecordsToStorage(); updateRecordStatus(recordId, 'approved');
+  closeModal(); loadAdminRecords(); showToast('Registro autorizado');
+}
+
+function printRecord(recordId) {
+  const record = records.find(r => r.id === recordId);
+  if (!record) return;
+  const allRows = [];
+  record.dates.forEach(d => {
+    const dateObj = new Date(d.fecha + 'T12:00:00');
+    const dia = dateObj.getDate();
+    const mes = dateObj.toLocaleString('es-MX', { month: 'short' });
+    d.hours.forEach((h, idx) => {
+      allRows.push({ dia: idx===0?dia:'', mes: idx===0?mes:'', inicio: h.inicio, fin: h.fin, suplencia: h.suplencia?'Sí':'', mins: calcMinutes(h.inicio, h.fin) });
+    });
+  });
+  let tableRows = allRows.map(r => '<tr><td>'+r.dia+'</td><td>'+r.mes+'</td><td>'+r.inicio+'</td><td>'+r.fin+'</td><td>'+r.suplencia+'</td><td>'+(r.mins>=60?Math.floor(r.mins/60):'')+'</td><td>'+(r.mins%60>=30?'1':'')+'</td></tr>').join('');
+  const emptyRows = Math.max(0, 29 - allRows.length);
+  for (let i = 0; i < emptyRows; i++) tableRows += '<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+  document.getElementById('printView').innerHTML = '<div class="print-header"><h2>ACALI CLUB</h2><p>Registro de Horas - Natación</p></div><div class="print-meta"><span><strong>Nombre:</strong> '+record.instructor+'</span><span><strong>Periodo:</strong> '+formatPeriodo(record.periodo)+'</span></div><table class="print-table"><thead><tr><th>Día</th><th>Mes</th><th>Hora Inicio</th><th>Hora Fin</th><th>Suple</th><th>Hrs</th><th>½ Hrs</th></tr></thead><tbody>'+tableRows+'<tr style="font-weight:bold;"><td colspan="5" style="text-align:right;">Total:</td><td>'+record.totalHrs+'</td><td>'+record.totalMediaHrs+'</td></tr></tbody></table><div class="print-footer"><div><div class="line"></div><small>Firma del Instructor</small></div><div><div class="line"></div><small>Autoriza</small></div></div>';
+  closeModal(); setTimeout(() => window.print(), 300);
+}
+
+function openConfig() {
+  document.getElementById('cfgScriptUrl').value = APP_CONFIG.scriptUrl || '';
+  document.getElementById('cfgAdminPin').value = APP_CONFIG.adminPin || '1234';
+  document.getElementById('cfgInstructors').value = APP_CONFIG.instructors.join('\n');
+  document.getElementById('configModal').classList.add('show');
+}
+
+function closeConfigModal() { document.getElementById('configModal').classList.remove('show'); }
+
+function saveConfig() {
+  APP_CONFIG.scriptUrl = document.getElementById('cfgScriptUrl').value.trim();
+  APP_CONFIG.adminPin = document.getElementById('cfgAdminPin').value.trim() || '1234';
+  APP_CONFIG.instructors = document.getElementById('cfgInstructors').value.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+  saveConfigToStorage(); populateInstructors(); checkConfigBanner(); closeConfigModal(); showToast('Configuración guardada');
+}
+
+function formatPeriodo(p) {
+  if (!p) return '';
+  const [y,m,q] = p.split('-');
+  const date = new Date(parseInt(y), parseInt(m)-1, 1);
+  const mn = date.toLocaleString('es-MX', { month: 'long' });
+  return (q==='Q1'?'1ra Quincena':'2da Quincena')+' - '+mn.charAt(0).toUpperCase()+mn.slice(1)+' '+y;
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function showToast(msg, type) {
+  type = type || 'success';
+  const toast = document.getElementById('toast');
+  const icon = document.querySelector('#toast .material-icons-round');
+  document.getElementById('toastMsg').textContent = msg;
+  if (type === 'error') { toast.style.background = '#DC3545'; icon.textContent = 'error'; }
+  else { toast.style.background = '#343A40'; icon.textContent = 'check_circle'; }
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+init();
+</script>
+</body>
+</html>
