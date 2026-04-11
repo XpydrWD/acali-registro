@@ -139,6 +139,22 @@ select.form-control { background-image: url("data:image/svg+xml,%3Csvg xmlns='ht
 .instructor-name { font-size: 13px; color: var(--gray-800); font-weight: 500; }
 .btn-remove-instructor { width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--danger-light); color: var(--danger); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .btn-remove-instructor .material-icons-round { font-size: 16px; }
+.status-rejected { background: #FDEAEC; color: #8B1A24; }
+.validation-card { background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); margin-bottom: 16px; overflow: hidden; border: 1px solid var(--gray-200); }
+.validation-card-header { padding: 14px 16px; background: var(--gray-50); border-bottom: 1px solid var(--gray-200); }
+.validation-card-header h4 { font-size: 15px; font-weight: 700; color: var(--gray-900); margin-bottom: 2px; }
+.validation-card-header p { font-size: 12px; color: var(--gray-600); }
+.validation-card-body { padding: 12px 16px; }
+.validation-date-block { margin-bottom: 10px; }
+.validation-date-title { font-size: 12px; font-weight: 600; color: var(--primary); margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+.validation-hour-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: var(--gray-50); border-radius: 6px; margin-bottom: 4px; font-size: 13px; }
+.validation-hour-time { font-weight: 500; color: var(--gray-800); }
+.validation-hour-meta { font-size: 11px; color: var(--gray-500); }
+.validation-card-footer { padding: 12px 16px; border-top: 1px solid var(--gray-100); display: flex; gap: 8px; }
+.validation-card-footer .btn { flex: 1; }
+.btn-danger { background: var(--danger); color: var(--white); }
+.btn-danger:hover { background: #B02A37; }
+.validation-totals { display: flex; gap: 8px; padding: 10px 16px; background: var(--primary-light); border-top: 1px solid var(--gray-200); font-size: 12px; color: var(--primary); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -156,6 +172,7 @@ select.form-control { background-image: url("data:image/svg+xml,%3Csvg xmlns='ht
 <nav class="nav-tabs">
   <button class="nav-tab active" onclick="switchTab('capture')"><span class="material-icons-round">edit_note</span>Capturar</button>
   <button class="nav-tab" onclick="switchTab('records')"><span class="material-icons-round">list_alt</span>Registros</button>
+  <button class="nav-tab" onclick="switchTab('validate')"><span class="material-icons-round">fact_check</span>Validar</button>
   <button class="nav-tab" onclick="switchTab('admin')"><span class="material-icons-round">admin_panel_settings</span>Admin</button>
 </nav>
 <main class="main-content">
@@ -181,6 +198,13 @@ select.form-control { background-image: url("data:image/svg+xml,%3Csvg xmlns='ht
   <div id="screen-records" class="screen">
     <div class="filter-bar"><select id="filterPeriodo" class="form-control" onchange="loadRecords()"><option value="">Todos los periodos</option></select></div>
     <div id="recordsList" class="card"><div class="empty-state"><span class="material-icons-round">inbox</span><p>No hay registros aún.<br>Captura tus horas para verlas aquí.</p></div></div>
+  </div>
+  <div id="screen-validate" class="screen">
+    <div class="filter-bar">
+      <select id="validateFilterPeriodo" class="form-control" onchange="loadValidationRecords()"><option value="">Todos los periodos</option></select>
+      <select id="validateFilterInstructor" class="form-control" onchange="loadValidationRecords()"><option value="">Todos</option></select>
+    </div>
+    <div id="validationList"></div>
   </div>
   <div id="screen-admin" class="screen">
     <div class="stats-row" id="adminStats">
@@ -243,6 +267,7 @@ let APP_CONFIG = {
 let records = [];
 let dateBlockCount = 0;
 let adminUnlocked = false;
+let validateUnlocked = false;
 
 function init() {
   // Cargar registros locales mientras llegan los datos de la nube
@@ -288,22 +313,138 @@ function switchTab(tab) {
   event.currentTarget.classList.add('active');
   document.getElementById('screen-' + tab).classList.add('active');
   if (tab === 'records') loadRecords();
+  if (tab === 'validate') { if (!validateUnlocked) requestValidatePin(); else loadValidationRecords(); }
   if (tab === 'admin') { if (!adminUnlocked) requestAdminPin(); else loadAdminRecords(); }
 }
 
 function requestAdminPin() {
   const pin = prompt('Ingresa el PIN de Administrador:');
   if (pin === APP_CONFIG.adminPin) { adminUnlocked = true; loadAdminRecords(); }
-  else if (pin !== null) { showToast('PIN incorrecto', 'error'); switchTab('capture'); document.querySelectorAll('.nav-tab')[0].classList.add('active'); document.querySelectorAll('.nav-tab')[2].classList.remove('active'); }
-  else { switchTab('capture'); document.querySelectorAll('.nav-tab')[0].classList.add('active'); document.querySelectorAll('.nav-tab')[2].classList.remove('active'); }
+  else if (pin !== null) { showToast('PIN incorrecto', 'error'); document.querySelectorAll('.nav-tab')[0].click(); }
+  else { document.querySelectorAll('.nav-tab')[0].click(); }
+}
+
+function requestValidatePin() {
+  const pin = prompt('Ingresa el PIN de Supervisor:');
+  if (pin === APP_CONFIG.adminPin) {
+    validateUnlocked = true;
+    populateValidateFilters();
+    loadValidationRecords();
+  } else if (pin !== null) {
+    showToast('PIN incorrecto', 'error');
+    document.querySelectorAll('.nav-tab')[0].click();
+  } else {
+    document.querySelectorAll('.nav-tab')[0].click();
+  }
+}
+
+function populateValidateFilters() {
+  // Periodos
+  ['validateFilterPeriodo'].forEach(id => {
+    const sel = document.getElementById(id);
+    const now = new Date();
+    const periodos = [];
+    for (let i = -2; i <= 2; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      const y = d.getFullYear(); const m = d.getMonth();
+      const mn = d.toLocaleString('es-MX', { month: 'long' });
+      const mnCap = mn.charAt(0).toUpperCase() + mn.slice(1);
+      periodos.push({ value: y+'-'+String(m+1).padStart(2,'0')+'-Q1', label: '1ra Quincena - '+mnCap+' '+y });
+      periodos.push({ value: y+'-'+String(m+1).padStart(2,'0')+'-Q2', label: '2da Quincena - '+mnCap+' '+y });
+    }
+    sel.innerHTML = '<option value="">Todos los periodos</option>';
+    periodos.forEach(p => { sel.innerHTML += '<option value="'+p.value+'">'+p.label+'</option>'; });
+  });
+  // Instructores
+  const selInst = document.getElementById('validateFilterInstructor');
+  selInst.innerHTML = '<option value="">Todos</option>';
+  APP_CONFIG.instructors.forEach(name => { selInst.innerHTML += '<option value="'+name+'">'+name+'</option>'; });
+}
+
+function loadValidationRecords() {
+  if (!validateUnlocked) return;
+  const container = document.getElementById('validationList');
+  const fp = document.getElementById('validateFilterPeriodo').value;
+  const fi = document.getElementById('validateFilterInstructor').value;
+  // Solo mostrar pendientes
+  let filtered = records.filter(r => r.status === 'pending');
+  if (fp) filtered = filtered.filter(r => r.periodo === fp);
+  if (fi) filtered = filtered.filter(r => r.instructor === fi);
+  filtered.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state"><span class="material-icons-round">fact_check</span><p>No hay registros pendientes de validación.</p></div>';
+    return;
+  }
+  container.innerHTML = filtered.map(r => buildValidationCard(r)).join('');
+}
+
+function buildValidationCard(r) {
+  let datesHtml = '';
+  r.dates.forEach(d => {
+    datesHtml += '<div class="validation-date-block">';
+    datesHtml += '<div class="validation-date-title"><span class="material-icons-round" style="font-size:14px;">calendar_today</span>'+formatDate(d.fecha)+'</div>';
+    d.hours.forEach(h => {
+      const mins = calcMinutes(h.inicio, h.fin);
+      const hrs = mins >= 60 ? Math.floor(mins/60)+'h ' : '';
+      const med = mins % 60 >= 30 ? '½h' : '';
+      datesHtml += '<div class="validation-hour-item"><span class="validation-hour-time">'+h.inicio+' – '+h.fin+'</span><span class="validation-hour-meta">'+hrs+med+(h.suplencia?' · Suplencia':'')+'</span></div>';
+    });
+    datesHtml += '</div>';
+  });
+  return '<div class="validation-card">'+
+    '<div class="validation-card-header">'+
+      '<h4>'+r.instructor+'</h4>'+
+      '<p>'+formatPeriodo(r.periodo)+' · '+r.dates.length+' día(s)</p>'+
+    '</div>'+
+    '<div class="validation-card-body">'+datesHtml+'</div>'+
+    '<div class="validation-totals">'+
+      '<span>⏱ '+r.totalHrs+' hrs</span>'+
+      (r.totalMediaHrs > 0 ? '<span>½ '+r.totalMediaHrs+'</span>' : '')+
+      (r.totalSuplencias > 0 ? '<span>↔ '+r.totalSuplencias+' supl.</span>' : '')+
+    '</div>'+
+    '<div class="validation-card-footer">'+
+      '<button class="btn btn-success btn-sm" onclick="validateRecord(''+r.id+'','approved')"><span class="material-icons-round">check_circle</span>Autorizar</button>'+
+      '<button class="btn btn-danger btn-sm" onclick="validateRecord(''+r.id+'','rejected')"><span class="material-icons-round">cancel</span>Rechazar</button>'+
+    '</div>'+
+  '</div>';
+}
+
+async function validateRecord(recordId, status) {
+  const record = records.find(r => r.id === recordId);
+  if (!record) return;
+  const accion = status === 'approved' ? 'autorizar' : 'rechazar';
+  if (!confirm('¿Deseas '+accion+' el registro de '+record.instructor+'?')) return;
+  record.status = status;
+  record.authorizedAt = new Date().toISOString();
+  record.authorizedBy = 'Supervisor';
+  saveRecordsToStorage();
+  if (APP_CONFIG.scriptUrl) {
+    try {
+      await fetch(APP_CONFIG.scriptUrl, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'updateStatus', recordId, status })
+      });
+    } catch(e) { console.error(e); }
+  }
+  const msg = status === 'approved' ? '✅ Registro autorizado' : '❌ Registro rechazado';
+  showToast(msg);
+  loadValidationRecords();
+  loadRecords();
 }
 
 function populateInstructors() {
   const sel = document.getElementById('selInstructor');
   const af = document.getElementById('adminFilterInstructor');
+  const vf = document.getElementById('validateFilterInstructor');
   sel.innerHTML = '<option value="">Selecciona tu nombre...</option>';
   af.innerHTML = '<option value="">Todos</option>';
-  APP_CONFIG.instructors.forEach(name => { sel.innerHTML += '<option value="'+name+'">'+name+'</option>'; af.innerHTML += '<option value="'+name+'">'+name+'</option>'; });
+  vf.innerHTML = '<option value="">Todos</option>';
+  APP_CONFIG.instructors.forEach(name => {
+    sel.innerHTML += '<option value="'+name+'">'+name+'</option>';
+    af.innerHTML += '<option value="'+name+'">'+name+'</option>';
+    vf.innerHTML += '<option value="'+name+'">'+name+'</option>';
+  });
 }
 
 function populatePeriodos() {
@@ -411,7 +552,11 @@ function loadRecords() {
   if (inst) filtered = filtered.filter(r => r.instructor === inst);
   filtered.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
   if (filtered.length === 0) { container.innerHTML = '<div class="empty-state"><span class="material-icons-round">inbox</span><p>No hay registros para este periodo.</p></div>'; return; }
-  container.innerHTML = filtered.map(r => '<div class="record-item" onclick="showRecordDetail(\''+r.id+'\')"><div class="record-info"><h4>'+r.instructor+'</h4><p>'+formatPeriodo(r.periodo)+' · '+r.dates.length+' día(s) · '+r.totalHrs+'h '+(r.totalMediaHrs > 0 ? r.totalMediaHrs+'½h' : '')+'</p></div><span class="status-badge '+(r.status==='approved'?'status-approved':'status-pending')+'">'+(r.status==='approved'?'✓ Autorizado':'⏳ Pendiente')+'</span></div>').join('');
+  container.innerHTML = filtered.map(r => {
+    const bc = r.status==='approved'?'status-approved':r.status==='rejected'?'status-rejected':'status-pending';
+    const bt = r.status==='approved'?'✓ Autorizado':r.status==='rejected'?'✗ Rechazado':'⏳ Pendiente';
+    return '<div class="record-item" onclick="showRecordDetail(\''+r.id+'\')"><div class="record-info"><h4>'+r.instructor+'</h4><p>'+formatPeriodo(r.periodo)+' · '+r.dates.length+' día(s) · '+r.totalHrs+'h '+(r.totalMediaHrs > 0 ? r.totalMediaHrs+'½h' : '')+'</p></div><span class="status-badge '+bc+'">'+bt+'</span></div>';
+  }).join('');
 }
 
 function loadAdminRecords() {
@@ -426,7 +571,11 @@ function loadAdminRecords() {
   document.getElementById('statTotal').textContent = filtered.length;
   document.getElementById('statPending').textContent = filtered.filter(r => r.status === 'pending').length;
   if (filtered.length === 0) { container.innerHTML = '<div class="empty-state"><span class="material-icons-round">admin_panel_settings</span><p>No hay registros para estos filtros.</p></div>'; return; }
-  container.innerHTML = filtered.map(r => '<div class="record-item" onclick="showRecordDetail(\''+r.id+'\',true)"><div class="record-info"><h4>'+r.instructor+'</h4><p>'+formatPeriodo(r.periodo)+' · '+r.totalHrs+'h '+(r.totalMediaHrs>0?r.totalMediaHrs+'½h':'')+' · '+(r.totalSuplencias>0?r.totalSuplencias+' suple':'')+'</p></div><span class="status-badge '+(r.status==='approved'?'status-approved':'status-pending')+'">'+(r.status==='approved'?'✓ Autorizado':'⏳ Pendiente')+'</span></div>').join('');
+  container.innerHTML = filtered.map(r => {
+    const bc = r.status==='approved'?'status-approved':r.status==='rejected'?'status-rejected':'status-pending';
+    const bt = r.status==='approved'?'✓ Autorizado':r.status==='rejected'?'✗ Rechazado':'⏳ Pendiente';
+    return '<div class="record-item" onclick="showRecordDetail(\''+r.id+'\',true)"><div class="record-info"><h4>'+r.instructor+'</h4><p>'+formatPeriodo(r.periodo)+' · '+r.totalHrs+'h '+(r.totalMediaHrs>0?r.totalMediaHrs+'½h':'')+' · '+(r.totalSuplencias>0?r.totalSuplencias+' suple':'')+'</p></div><span class="status-badge '+bc+'">'+bt+'</span></div>';
+  }).join('');
 }
 
 function showRecordDetail(recordId, isAdmin) {
