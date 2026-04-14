@@ -270,17 +270,13 @@ let adminUnlocked = false;
 let validateUnlocked = false;
 
 function init() {
-  // Cargar registros locales mientras llegan los datos de la nube
-  const savedRecords = localStorage.getItem('acali_records');
-  if (savedRecords) records = JSON.parse(savedRecords);
   populatePeriodos();
   addDateBlock();
   checkConfigBanner();
-  // Registrar listeners de cambio
   document.getElementById('selInstructor').addEventListener('change', updateSubmitState);
   document.getElementById('selPeriodo').addEventListener('change', updateSubmitState);
-  // Cargar instructores desde Google Sheets
-  loadInstructorsFromSheet();
+  // Cargar todo desde Google Sheets
+  loadFromSheet();
 }
 
 function saveConfigToStorage() {
@@ -289,25 +285,51 @@ function saveConfigToStorage() {
 function saveRecordsToStorage() { localStorage.setItem('acali_records', JSON.stringify(records)); }
 function checkConfigBanner() { document.getElementById('configBanner').style.display = APP_CONFIG.scriptUrl ? 'none' : 'flex'; }
 
-async function loadInstructorsFromSheet() {
+async function loadFromSheet() {
   if (!APP_CONFIG.scriptUrl) {
-    // Sin URL configurada, mostrar lista vacía con mensaje
     populateInstructors();
     loadRecords();
     return;
   }
+  // Mostrar indicador de carga
+  document.getElementById('recordsList').innerHTML = '<div class="empty-state"><span class="material-icons-round">sync</span><p>Cargando registros...</p></div>';
   try {
-    const url = APP_CONFIG.scriptUrl + '?action=getInstructors&t=' + Date.now();
-    const resp = await fetch(url);
-    const data = await resp.json();
-    if (data.instructors && data.instructors.length > 0) {
-      APP_CONFIG.instructors = data.instructors;
+    // Cargar instructores
+    const urlInst = APP_CONFIG.scriptUrl + '?action=getInstructors&t=' + Date.now();
+    const respInst = await fetch(urlInst);
+    const dataInst = await respInst.json();
+    if (dataInst.instructors && dataInst.instructors.length > 0) {
+      APP_CONFIG.instructors = dataInst.instructors;
     }
   } catch(e) {
     console.error('No se pudo cargar instructores:', e);
   }
+  try {
+    // Cargar registros desde Sheets
+    const urlRec = APP_CONFIG.scriptUrl + '?action=getRecords&t=' + Date.now();
+    const respRec = await fetch(urlRec);
+    const dataRec = await respRec.json();
+    if (dataRec.records && dataRec.records.length > 0) {
+      records = dataRec.records;
+      saveRecordsToStorage();
+    } else {
+      // Si Sheets no tiene nada, usar localStorage como respaldo
+      const saved = localStorage.getItem('acali_records');
+      if (saved) records = JSON.parse(saved);
+    }
+  } catch(e) {
+    console.error('No se pudo cargar registros:', e);
+    // Fallback a localStorage
+    const saved = localStorage.getItem('acali_records');
+    if (saved) records = JSON.parse(saved);
+  }
   populateInstructors();
   loadRecords();
+}
+
+// Mantener compatibilidad con llamadas existentes
+async function loadInstructorsFromSheet() {
+  await loadFromSheet();
 }
 
 function switchTab(tab, btn) {
@@ -315,9 +337,9 @@ function switchTab(tab, btn) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   if (btn) btn.classList.add('active');
   document.getElementById('screen-' + tab).classList.add('active');
-  if (tab === 'records') loadRecords();
-  if (tab === 'validate') { if (!validateUnlocked) requestValidatePin(btn); else loadValidationRecords(); }
-  if (tab === 'admin') { if (!adminUnlocked) requestAdminPin(btn); else loadAdminRecords(); }
+  if (tab === 'records') { loadFromSheet().then(() => loadRecords()); }
+  if (tab === 'validate') { if (!validateUnlocked) requestValidatePin(btn); else { loadFromSheet().then(() => loadValidationRecords()); } }
+  if (tab === 'admin') { if (!adminUnlocked) requestAdminPin(btn); else { loadFromSheet().then(() => loadAdminRecords()); } }
 }
 
 function goHome() {
