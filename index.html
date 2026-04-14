@@ -276,6 +276,9 @@ function init() {
   populatePeriodos();
   addDateBlock();
   checkConfigBanner();
+  // Registrar listeners de cambio
+  document.getElementById('selInstructor').addEventListener('change', updateSubmitState);
+  document.getElementById('selPeriodo').addEventListener('change', updateSubmitState);
   // Cargar instructores desde Google Sheets
   loadInstructorsFromSheet();
 }
@@ -410,13 +413,15 @@ function buildValidationCard(r) {
       (r.totalSuplencias > 0 ? '<span>↔ '+r.totalSuplencias+' supl.</span>' : '')+
     '</div>'+
     '<div class="validation-card-footer">'+
-      '<button class="btn btn-success btn-sm" onclick="validateRecord(''+r.id+'','approved')"><span class="material-icons-round">check_circle</span>Autorizar</button>'+
-      '<button class="btn btn-danger btn-sm" onclick="validateRecord(''+r.id+'','rejected')"><span class="material-icons-round">cancel</span>Rechazar</button>'+
+      '<button class="btn btn-success btn-sm" onclick="validateRecord(this)" data-id="'+r.id+'" data-status="approved"><span class="material-icons-round">check_circle</span>Autorizar</button>'+
+      '<button class="btn btn-danger btn-sm" onclick="validateRecord(this)" data-id="'+r.id+'" data-status="rejected"><span class="material-icons-round">cancel</span>Rechazar</button>'+
     '</div>'+
   '</div>';
 }
 
-async function validateRecord(recordId, status) {
+async function validateRecord(btn) {
+  const recordId = btn.getAttribute('data-id');
+  const status = btn.getAttribute('data-status');
   const record = records.find(r => r.id === recordId);
   if (!record) return;
   const accion = status === 'approved' ? 'autorizar' : 'rechazar';
@@ -501,8 +506,7 @@ function updateSubmitState() {
   const blocks = document.querySelectorAll('.date-block');
   document.getElementById('btnSubmit').disabled = !(blocks.length > 0 && instructor && periodo);
 }
-document.getElementById('selInstructor').addEventListener('change', updateSubmitState);
-document.getElementById('selPeriodo').addEventListener('change', updateSubmitState);
+// Los listeners se registran en init() para garantizar que el DOM esté listo
 
 function calcMinutes(start, end) {
   const [sh,sm] = start.split(':').map(Number);
